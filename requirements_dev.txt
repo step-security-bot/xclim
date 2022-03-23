@@ -16,6 +16,7 @@ pytest-runner
 tokenize-rt
 tox
 wheel
+wily
 xdoctest
 yamale
 yamllint
