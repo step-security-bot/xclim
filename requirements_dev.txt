@@ -16,6 +16,7 @@ pytest-cov
 tokenize-rt
 tox
 wheel
+wily
 xdoctest
 yamale
 yamllint
