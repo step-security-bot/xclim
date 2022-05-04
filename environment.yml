@@ -21,14 +21,14 @@ dependencies:
     - scipy>=1.2
     - xarray>=0.17
     # Testing and development dependencies
-    - black
+    - black>=22.3
     - bump2version
     - coverage
     - distributed>=2.0
     - flake8
     - flake8-rst-docstrings
     - ipykernel
-    - ipython<8.0 # see #1005
+    - ipython
     - matplotlib
     - mypy
     - nbval

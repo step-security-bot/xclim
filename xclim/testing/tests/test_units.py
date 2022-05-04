@@ -28,6 +28,7 @@ class TestUnits:
         with units.context("hydro"):
             q = 1 * units.kg / units.m**2 / units.s
             assert q.to("mm/day") == q.to("mm/d")
+            assert q.to("mmday").magnitude == 24 * 60**2
 
     def test_lat_lon(self):
         assert 100 * units.degreeN == 100 * units.degree
@@ -81,6 +82,12 @@ class TestConvertUnitsTo:
         pr = pr_series(np.arange(365), start="1/1/2001").chunk({"time": 100})
         out = convert_units_to(pr, "mm/day")
         assert isinstance(out.data, dsk.Array)
+
+    @pytest.mark.parametrize(
+        "alias", [units("Celsius"), units("degC"), units("C"), units("deg_C")]
+    )
+    def test_temperature_aliases(self, alias):
+        assert alias == units("celsius")
 
     def test_offset_confusion(self):
         out = convert_units_to("10 degC days", "K days")

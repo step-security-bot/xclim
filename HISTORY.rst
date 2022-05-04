@@ -2,7 +2,37 @@
 History
 =======
 
-0.35.0 (unreleased)
+0.36.1 (unreleased)
+------------------
+
+Contributors to this version:  Abel Aoun (:user:`bzah`).
+
+New features and enhancements
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+* Add "Celsius" to aliases of "celsius" unit.(:issue:`1067`, :pull:`1068`).
+
+
+0.36.0 (29-04-2022)
+-------------------
+Contributors to this version: Pascal Bourgault (:user:`aulemahal`), Juliette Lavoie (:user:`juliettelavoie`), David Huard (:user:`huard`).
+
+Bug fixes
+^^^^^^^^^
+* Invoking ``lazy_indexing`` twice in row (or more) using the same indexes (using dask) is now fixed. (:issue:`1048`, :pull:`1049`).
+* Filtering out the nans before choosing the first and last values as ``fill_value`` in ``_interp_on_quantiles_1D``. (:issue:`1056`, :pull:`1057`).
+* Translations from virtual indicator modules do not override those of the base indicators anymore. (:issue:`1053`, :pull:`1058`).
+* Fix mmday unit definition (factor 1000 error). (:issue:`1061`, :pull:`1063`).
+
+New features and enhancements
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+* ``xclim.sdba.measures.rmse`` and ``xclim.sdba.measures.mae`` now use `numpy` instead of `sklearn`. This improves their performances when using `dask`. (:pull:`1051`).
+* Argument ``append_ends`` added to ``sdba.unpack_moving_yearly_window`` (:pull:`1059`).
+
+Internal changes
+^^^^^^^^^^^^^^^^
+* Ipython was unpinned as version 8.2 fixed the previous issue. (:issue:`1005`, :pull:`1064`).
+
+0.35.0 (01-04-2022)
 -------------------
 Contributors to this version: David Huard (:user:`huard`), Trevor James Smith (:user:`Zeitsperre`) and Pascal Bourgault (:user:`aulemahal`).
 
@@ -13,15 +43,18 @@ New indicators
 New features and enhancements
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 * New spatial analogues method "szekely_rizzo" (:pull:`1033`).
+* Loess smoothing (and detrending) now skip NaN values, instead of propagating them. This can be controlled through the `skipna` argument. (:pull:`1030`).
 
 Bug fixes
 ^^^^^^^^^
-* ``xclim.analog.spatial_analogs`` now compatible with dask-backed DataArrays (:pull:`1033`).
-* Parameter ``dmin`` added to spatial analog method "zech_aslan", to avoid singularities on identical points (:pull:`1033`).
+* ``xclim.analog.spatial_analogs`` is now compatible with dask-backed DataArrays. (:pull:`1033`).
+* Parameter ``dmin`` added to spatial analog method "zech_aslan", to avoid singularities on identical points. (:pull:`1033`).
+* `xclim` is now compatible with changes in `xarray` that enabled explicit indexing operations. (:pull:`1038`, `xarray PR <https://github.com/pydata/xarray/pull/5692>`_).
 
 Internal changes
 ^^^^^^^^^^^^^^^^
 * `xclim` now uses the ``check-json`` and ``pretty-format-json`` pre-commit checks to validate and format JSON files. (:pull:`1032`).
+* The few `logging` artifacts in the ``xclim.ensembles`` module have been replaced with `warnings.warn` calls or removed. (:issue:`1039`, :pull:`1044`).
 
 0.34.0 (25-02-2022)
 -------------------
