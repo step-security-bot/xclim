@@ -1216,6 +1216,18 @@ else:
             else:
                 input_core_dims = [("time_cal",), ("time_cal",), ("time_tgt",)]
 
+            #@staticmethod
+            def _apply_sbck(ref, hist, sim, method, fit_needs_sim, **kwargs):
+                obj = method(**kwargs)
+                if fit_needs_sim:
+                    obj.fit(ref, hist, sim)
+                else:
+                    obj.fit(ref, hist)
+                scen = obj.predict(sim)
+                if sim.ndim == 1:
+                    return scen[:, 0]
+                return scen
+
             return xr.apply_ufunc(
                 cls._apply_sbck,
                 ref,
@@ -1230,17 +1242,7 @@ else:
                 output_dtypes=[sim.dtype],
             ).rename(time_tgt="time")
 
-        @staticmethod
-        def _apply_sbck(ref, hist, sim, method, fit_needs_sim, **kwargs):
-            obj = method(**kwargs)
-            if fit_needs_sim:
-                obj.fit(ref, hist, sim)
-            else:
-                obj.fit(ref, hist)
-            scen = obj.predict(sim)
-            if sim.ndim == 1:
-                return scen[:, 0]
-            return scen
+        
 
     def _parse_sbck_doc(cls):
         def _parse(s):
