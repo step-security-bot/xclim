@@ -1229,7 +1229,7 @@ else:
                 return scen
 
             return xr.apply_ufunc(
-                cls._apply_sbck,
+                _apply_sbck,
                 ref,
                 hist,
                 sim,
@@ -1242,7 +1242,7 @@ else:
                 output_dtypes=[sim.dtype],
             ).rename(time_tgt="time")
 
-        
+
 
     def _parse_sbck_doc(cls):
         def _parse(s):
