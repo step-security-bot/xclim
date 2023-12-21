@@ -1260,11 +1260,15 @@ class NpdfTransform(TrainAdjust):
 
         # template = xr.full_like(hist, np.NaN).to_dataset(name="scenh_npdft")
         template = (
-            get_windowed_group(xr.full_like(hist, np.NaN), group)[{"stack_dim": 0}]
-            .copy()
-            .expand_dims({"quantiles": quantiles})
-            .expand_dims({"iterations": rot_matrices.iterations.values})
-        ).to_dataset(name="af_q")
+            (
+                get_windowed_group(xr.full_like(hist, np.NaN), group)[{"stack_dim": 0}]
+                .copy()
+                .expand_dims({"quantiles": quantiles})
+                .expand_dims({"iterations": rot_matrices.iterations.values})
+            )
+            .to_dataset(name="af_q")
+            .rename({pts_dim: rot_dim})
+        )
 
         # compute
         out = ds.map_blocks(npdf_train, kwargs=kwargs, template=template)
