@@ -207,6 +207,7 @@ def _npdft(ref, hist, rots, quantiles, method, extrap):
     return af_q
 
 
+# weird git bug, useless comment to have a new commit
 def npdf_train(
     ds,
     rot_matrices,

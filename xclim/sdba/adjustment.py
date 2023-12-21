@@ -1040,16 +1040,6 @@ def _get_group_complement(da, group):
         return da.time.dt.strftime("%Y-%d")
 
 
-def _get_group_complement(da, group):
-    # complement of "dayofyear": "year", etc.
-    gr = group.name if isinstance(group, Grouper) else group
-    gr = group
-    if gr == "time.dayofyear":
-        return da.time.dt.year
-    if gr == "time.month":
-        return da.time.dt.strftime("%Y-%d")
-
-
 def get_windowed_group(da, group, n_group_chunks=1, stack_dim=None):
     r"""Splits an input array into `group`, its complement, and expands the array along a rolling `window` dimension.
 
