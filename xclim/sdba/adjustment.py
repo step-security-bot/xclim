@@ -1040,6 +1040,62 @@ def _get_group_complement(da, group):
         return da.time.dt.strftime("%Y-%d")
 
 
+def _get_group_complement(da, group):
+    # complement of "dayofyear": "year", etc.
+    gr = group.name if isinstance(group, Grouper) else group
+    gr = group
+    if gr == "time.dayofyear":
+        return da.time.dt.year
+    if gr == "time.month":
+        return da.time.dt.strftime("%Y-%d")
+
+
+def get_windowed_group(da, group, n_group_chunks=1, stack_dim=None):
+    r"""Splits an input array into `group`, its complement, and expands the array along a rolling `window` dimension.
+
+    Aims to give a faster alternative to `map_blocks` constructions.
+
+    """
+    # define dims (simplify this)
+    if stack_dim is None:
+        stack_dim = get_temp_dimname(da.dims, "stack_dim")
+    win_dim = get_temp_dimname(da.dims, "window_dim")
+    group = group if isinstance(group, Grouper) else Grouper(group, 1)
+    gr, win = group.name, group.window
+    gr_dim = gr.split(".")[-1]
+    gr_complement_dim = get_temp_dimname(da.dims, "group_complement_dim")
+    time_dims = [gr_dim, gr_complement_dim]
+    complement_dims = [win_dim, gr_complement_dim]
+    # should grouper allow time & win>1? I think only win=1 makes sense... Grouper should raise error
+    if group.name == "time":
+        da = da.rename({"time": stack_dim})
+    else:
+        if win == 1:
+            da = da.expand_dims({win_dim: [0]})
+        else:
+            da = da.rolling(time=win, center=True).construct(window_dim=win_dim)
+        da = da.groupby(gr).apply(
+            lambda da: da.assign_coords(time=_get_group_complement(da, gr)).rename(
+                {"time": gr_complement_dim}
+            )
+        )
+        da = da.chunk({gr_dim: n_group_chunks, gr_complement_dim: -1})
+        da = da.stack({stack_dim: complement_dims})
+
+    da = da.assign_attrs(
+        {
+            "grouping": {
+                "group": (gr, win),
+                "complement_dims": complement_dims,
+                "stack_dim": stack_dim,
+                "time_dims": time_dims,
+                "window_dim": win_dim,
+            }
+        }
+    )
+    return da
+
+
 def time_group_indices(times, group):
     gr, win = group.name, group.window
     # get time indices (0,1,2,...) for each block
@@ -1202,33 +1258,36 @@ class NpdfTransform(TrainAdjust):
 
         # prepare input dataset
         ds = xr.Dataset(dict(ref=ref, hist=hist))
-        # kwargs = {
-        #     "quantiles": quantiles,
-        #     "group": group,
-        #     "method": interp,
-        #     "extrap": extrapolation,
-        #     "n_escore": n_escore,
-        # }
+        kwargs = {
+            "quantiles": quantiles,
+            "method": interp,
+            "extrap": extrapolation,
+            "n_escore": n_escore,
+            "rot_matrices": rot_matrices,
+            "g_idxs": g_idxs,
+            "gw_idxs": gw_idxs,
+        }
 
         # template = xr.full_like(hist, np.NaN).to_dataset(name="scenh_npdft")
-        # template["af_q"] = (
-        #     get_windowed_group(template["scenh_npdft"], group)[{"stack_dim": 0}]
-        #     .copy()
-        #     .expand_dims({"quantiles": quantiles})
-        # )
+        template = (
+            get_windowed_group(xr.full_like(hist, np.NaN), group)[{"stack_dim": 0}]
+            .copy()
+            .expand_dims({"quantiles": quantiles})
+            .expand_dims({"iterations": rot_matrices.iterations.values})
+        ).to_dataset(name="af_q")
 
         # compute
-        # out = ds.map_blocks(npdf_train, kwargs=kwargs, template=template)
-        out = npdf_train(
-            ds,
-            rot_matrices=rot_matrices,
-            quantiles=quantiles,
-            g_idxs=g_idxs,
-            gw_idxs=gw_idxs,
-            method=interp,
-            extrap=extrapolation,
-            n_escore=n_escore,
-        )
+        out = ds.map_blocks(npdf_train, kwargs=kwargs, template=template)
+        # out = npdf_train(
+        #     ds,
+        #     rot_matrices=rot_matrices,
+        #     quantiles=quantiles,
+        #     g_idxs=g_idxs,
+        #     gw_idxs=gw_idxs,
+        #     method=interp,
+        #     extrap=extrapolation,
+        #     n_escore=n_escore,
+        # )
 
         # postprocess
         out["rot_matrices"] = rot_matrices
